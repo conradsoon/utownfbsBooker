@@ -72,7 +72,7 @@ const bookSlot = async () => {
   const username = process.env.UTOWNFBS_USER as string;
   const password = process.env.UTOWNFBS_PASS as string;
 
-  console.log(`Username: //${username}//, Password: //${password}//`);
+  // console.log(`Username: //${username}//, Password: //${password}//`);
   // Load the URL
   await page.authenticate({ username, password });
   //   await page.goto("https://utownfbs.nus.edu.sg/utown/apptop.aspx");
