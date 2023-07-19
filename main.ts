@@ -1,4 +1,5 @@
 import puppeteer, { Frame, Page } from "puppeteer";
+require("dotenv").config();
 
 const selectByText = async (
   context: Page | Frame,
@@ -71,7 +72,7 @@ const bookSlot = async () => {
   const username = process.env.UTOWNFBS_USER as string;
   const password = process.env.UTOWNFBS_PASS as string;
 
-  // console.log(`Username: ${username}, Password: ${password}`);
+  console.log(`Username: //${username}//, Password: //${password}//`);
   // Load the URL
   await page.authenticate({ username, password });
   //   await page.goto("https://utownfbs.nus.edu.sg/utown/apptop.aspx");
@@ -112,7 +113,7 @@ const bookSlot = async () => {
   await selectByText(
     targetFrame!,
     'select[name="FacilityType$ctl02"]',
-    "(Conference / Meeting Room) - Meeting Room / Learning Pod/ Study Cubicles"
+    "(Seminar Room) - Facilities at Residential College 4"
   );
 
   // Perform action on the select element
@@ -122,7 +123,7 @@ const bookSlot = async () => {
   await selectByText(
     targetFrame!,
     'select[name="Facility$ctl02"]',
-    "MAC COMMONS LEARNING POD D1 (5 pax) (Education Resource Centre)"
+    "RC4 ORCA HUB (B1-45) (20 pax) (Residential College 4)"
   );
   // await targetFrame!.select('select[name="FacilityType$ctl02"]', "optionValue");
   //wait for 1000 0seconds
@@ -166,9 +167,9 @@ const bookSlot = async () => {
   console.log(htmlContent);
 
   // Selecting start time
-  await selectByText(newFrame!, 'select[name="from$ctl02"]', "09:00");
+  await selectByText(newFrame!, 'select[name="from$ctl02"]', "12:00");
   await newFrame!.waitForTimeout(2000);
-  await selectByText(newFrame!, 'select[name="to$ctl02"]', "09:30");
+  await selectByText(newFrame!, 'select[name="to$ctl02"]', "14:30");
   await newFrame!.waitForTimeout(2000);
 
   // Filling in expected number of attendees
