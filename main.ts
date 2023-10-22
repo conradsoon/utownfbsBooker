@@ -1,7 +1,7 @@
 import puppeteer, { Frame, Page } from "puppeteer";
 import { Context } from "telegraf";
 const { Telegraf, Scenes, session } = require("telegraf");
-require("dotenv").config();
+import config from "config";
 
 const selectByText = async (
   context: Page | Frame,
@@ -79,8 +79,10 @@ const bookSlot = async (
   try {
     browser = await puppeteer.launch({ headless: false });
     const page = await browser.newPage();
-    const username = process.env.UTOWNFBS_USER;
-    const password = process.env.UTOWNFBS_PASS;
+    // const username = process.env.UTOWNFBS_USER;
+    // const password = process.env.UTOWNFBS_PASS;
+    const username = config.get<string>("utownfbs.user");
+    const password = config.get<string>("utownfbs.pass");
 
     if (!username || !password) {
       throw new Error(
@@ -202,7 +204,8 @@ const bookSlot = async (
   }
 };
 
-const bot = new Telegraf(process.env.BOT_TOKEN);
+// const bot = new Telegraf(process.env.BOT_TOKEN);
+const bot = new Telegraf(config.get<string>("telegram.botToken"));
 
 bot.start((ctx: Context) =>
   ctx.reply(

@@ -1,0 +1,9 @@
+{
+  "utownfbs": {
+    "user": "productionUser",
+    "pass": "productionPass"
+  },
+  "telegram": {
+    "botToken": "productionToken"
+  }
+}
