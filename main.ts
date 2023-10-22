@@ -113,14 +113,14 @@ const bookSlot = async (
       'select[name="FacilityType$ctl02"]',
       "(Seminar Room) - Facilities at Residential College 4"
     );
-    await targetFrame.waitForTimeout(2000);
+    await targetFrame.waitForTimeout(500);
 
     await selectByText(
       targetFrame,
       'select[name="Facility$ctl02"]',
       "RC4 ORCA HUB (B1-45) (20 pax) (Residential College 4)"
     );
-    await targetFrame.waitForTimeout(2000);
+    await targetFrame.waitForTimeout(500);
 
     await targetFrame.evaluate((date) => {
       const startDateField = document.getElementById(
@@ -159,30 +159,27 @@ const bookSlot = async (
     }
 
     await selectByText(newFrame, 'select[name="from$ctl02"]', startTime);
-    await newFrame.waitForTimeout(2000);
+    await newFrame.waitForTimeout(500);
     await selectByText(newFrame, 'select[name="to$ctl02"]', endTime);
-    await newFrame.waitForTimeout(2000);
+    await newFrame.waitForTimeout(500);
     await newFrame.type(
       'input[name="ExpectedNoAttendees$ctl02"]',
       expectedAttendees
     );
-    await newFrame.waitForTimeout(2000);
+    await newFrame.waitForTimeout(500);
     await selectByText(newFrame, 'select[name="UsageType$ctl02"]', usageType);
-    await newFrame.waitForTimeout(2000);
+    await newFrame.waitForTimeout(500);
     await selectByText(
       newFrame,
       'select[name="ChargeGroup$ctl02"]',
       chargeGroup
     );
-    await newFrame.waitForTimeout(2000);
+    await newFrame.waitForTimeout(500);
     await newFrame.type('textarea[name="Purpose$ctl02"]', purpose);
-    await newFrame.waitForTimeout(2000);
+    await newFrame.waitForTimeout(500);
 
     await newFrame.click("#btnCreateBooking");
-    await newFrame.waitForTimeout(2000);
-
-    // Wait for 4 seconds
-    await newFrame!.waitForTimeout(4000);
+    await newFrame!.waitForTimeout(10000);
 
     // You can now check for the existence of the error message or proceed with the next steps
     const errorMessageElement = await newFrame!.$("#labelMessage1");
@@ -215,23 +212,41 @@ bot.start((ctx: Context) =>
 
 // @ts-ignore
 bot.command("book", async (ctx) => {
-  //if no message
-  // Check if the update contains a message and text
-  if (!ctx.message) {
-    return ctx.reply("This command can only be used with text messages.");
+  if (!("text" in ctx.message)) {
+    return ctx.reply("This command can only be used with text messages. 😅");
   }
 
-  const parts = ctx.message.text.split(" ").slice(1);
-  if (parts.length < 4) {
+  const regex =
+    /\/book (\d{2}-[a-zA-Z]{3}-\d{4}) (\d{2}:\d{2}) (\d{2}:\d{2}) "(.+)"/;
+  const parts = ctx.message.text.match(regex);
+
+  if (!parts || parts.length < 5) {
     return ctx.reply(
-      "Please provide all booking details. Usage: /book <date> <start time> <end time> <purpose>"
+      'Please provide all booking details in the correct format. Usage: /book <date> <start time> <end time> "<purpose>"'
     );
   }
 
-  const [date, startTime, endTime, purpose, ...commentsParts] = parts;
-  const comments = commentsParts.join(" ") || undefined;
+  const [, date, startTime, endTime, purpose] = parts;
 
-  await ctx.reply("Booking in progress...");
+  const bookingMessage = await ctx.reply("Booking in progress... ⏳", {
+    reply_to_message_id: ctx.message.message_id,
+  });
+
+  let seconds = 0;
+  let dotCount = 1;
+  const intervalId = setInterval(async () => {
+    seconds += 1;
+    const dots = ".".repeat(dotCount);
+    dotCount = (dotCount % 3) + 1;
+    await ctx.telegram.editMessageText(
+      bookingMessage.chat.id,
+      bookingMessage.message_id,
+      undefined,
+      `Booking in progress${dots} (${seconds} seconds elapsed) ⏳`,
+      { reply_to_message_id: ctx.message.message_id }
+    );
+  }, 1000);
+
   try {
     await bookSlot(
       date,
@@ -242,28 +257,37 @@ bot.command("book", async (ctx) => {
       "Official use related to academic duties",
       purpose
     );
-    await ctx.reply("Booking has been made successfully");
+    clearInterval(intervalId);
+    await ctx.telegram.editMessageText(
+      bookingMessage.chat.id,
+      bookingMessage.message_id,
+      undefined,
+      `Booking has been made successfully! 🎉\nTime elapsed: ${seconds} seconds\nBooking from: ${startTime} to ${endTime} on ${date}`,
+      { reply_to_message_id: ctx.message.message_id }
+    );
   } catch (error) {
+    clearInterval(intervalId);
     if (error instanceof Error) {
       console.error("Booking failed", error);
-      await ctx.reply("Booking failed: " + error.message);
+      await ctx.telegram.editMessageText(
+        bookingMessage.chat.id,
+        bookingMessage.message_id,
+        undefined,
+        `Booking failed: ${error.message} 😢\nTime elapsed: ${seconds} seconds`,
+        { reply_to_message_id: ctx.message.message_id }
+      );
     } else {
       console.error("An unexpected error occurred:", error);
-      await ctx.reply("Booking failed due to an unexpected error.");
+      await ctx.telegram.editMessageText(
+        bookingMessage.chat.id,
+        bookingMessage.message_id,
+        undefined,
+        `Booking failed due to an unexpected error. 😓\nTime elapsed: ${seconds} seconds`,
+        { reply_to_message_id: ctx.message.message_id }
+      );
     }
   }
 });
 
 bot.launch();
-console.log("Bot is running...");
-
-// Usage
-// bookSlot(
-//   "25-Oct-2023",
-//   "12:00",
-//   "16:30",
-//   "2",
-//   "Student Activities",
-//   "Official use related to academic duties",
-//   "Gym",
-// );
+console.log("Bot is running... 🤖");
