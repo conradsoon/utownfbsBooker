@@ -211,7 +211,7 @@ bot.start((ctx: Context) =>
 );
 
 // @ts-ignore
-bot.command("book", async (ctx) => {
+bot.command("bookgym", async (ctx) => {
   if (!("text" in ctx.message)) {
     return ctx.reply("This command can only be used with text messages. 😅");
   }
@@ -222,7 +222,7 @@ bot.command("book", async (ctx) => {
 
   if (!parts || parts.length < 5) {
     return ctx.reply(
-      'Please provide all booking details in the correct format. Usage: /book <date> <start time> <end time> "<purpose>"'
+      'Please provide all booking details in the correct format. Usage: /bookgym <date> <start time> <end time> "<purpose>"'
     );
   }
 
